@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isDoctorOrAdmin() {
+      return isAuthenticated();
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Doctors Collection Rules
+    match /Doctors/{doctorId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(doctorId) || request.auth.token.role == 'ADMIN';
+    }
+
+    // Patients Collection Rules
+    match /Patients/{patientId} {
+      allow read, write, create, update, delete: if isDoctorOrAdmin();
+    }
+
+    // Appointments Collection Rules
+    match /Appointments/{appointmentId} {
+      allow read, write, create, update, delete: if isDoctorOrAdmin();
+    }
+
+    // Reports Collection Rules
+    match /Reports/{reportId} {
+      allow read, write, create, update, delete: if isDoctorOrAdmin();
+    }
+
+    // AIResults Collection Rules
+    match /AIResults/{resultId} {
+      allow read, write, create: if isDoctorOrAdmin();
+    }
+
+    // Notifications Collection Rules
+    match /Notifications/{notificationId} {
+      allow read, write, create, update: if isAuthenticated();
+    }
+
+    // Treatments Collection Rules
+    match /Treatments/{treatmentId} {
+      allow read, write: if isDoctorOrAdmin();
+    }
+
+    // UserSettings Collection Rules
+    match /UserSettings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

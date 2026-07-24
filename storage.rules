@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Dental scans, X-rays & Intraoral photos
+    match /dental_scans/{patientId}/{allPaths=**} {
+      allow read, write, create, delete: if isAuthenticated();
+    }
+
+    // Doctor profile picture uploads
+    match /doctor_profiles/{doctorId}/{allPaths=**} {
+      allow read: if true;
+      allow write, create: if isAuthenticated();
+    }
+
+    // PDF Medical reports
+    match /medical_reports/{allPaths=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}
