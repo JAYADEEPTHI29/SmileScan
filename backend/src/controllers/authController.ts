@@ -31,7 +31,7 @@ export const authController = {
           photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=400',
           createdAt: new Date().toISOString(),
         };
-        await FirebaseService.createUser(user);
+        await FirebaseService.createUser(user, password);
       }
 
       const token = jwt.sign(
@@ -83,7 +83,7 @@ export const authController = {
         createdAt: new Date().toISOString(),
       };
 
-      await FirebaseService.createUser(newUser);
+      await FirebaseService.createUser(newUser, password);
 
       const token = jwt.sign(
         {

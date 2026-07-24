@@ -1,4 +1,4 @@
-import { db, storage, isFirebaseInitialized } from '../config/firebaseAdmin';
+import { db, auth, storage, isFirebaseInitialized } from '../config/firebaseAdmin';
 import { Patient, ScanReport, Appointment, User, AuditLog } from '../types';
 
 // In-Memory Data Storage (Mock / Zero-Config Fallback)
@@ -189,9 +189,28 @@ export const FirebaseService = {
     return mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 
-  async createUser(user: User): Promise<User> {
+  async createUser(user: User, password?: string): Promise<User> {
     if (isFirebaseInitialized && db) {
+      if (auth && password) {
+        try {
+          await auth.createUser({
+            uid: user.id,
+            email: user.email,
+            password: password,
+            displayName: user.name,
+          });
+          console.log(`✅ Firebase Auth user created for: ${user.email}`);
+        } catch (err: any) {
+          if (err.code === 'auth/email-already-exists') {
+            console.log(`ℹ️ Firebase Auth user already exists for: ${user.email}`);
+          } else {
+            console.warn(`⚠️ Firebase Auth creation notice: ${err.message}`);
+          }
+        }
+      }
       await db.collection('users').doc(user.id).set(user);
+      await db.collection('Doctors').doc(user.id).set(user);
+      console.log(`✅ Firestore user document created in 'users' & 'Doctors' for: ${user.email}`);
       return user;
     }
     mockUsers.push(user);
